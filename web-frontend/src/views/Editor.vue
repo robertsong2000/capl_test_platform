@@ -51,7 +51,7 @@
             v-for="testCase in testCases"
             :key="testCase.id"
             class="test-case-item"
-            :class="{ active: selectedTestCase?.id === testCase.id }"
+            :class="{ active: selectedTestCase && selectedTestCase.id === testCase.id }"
             @click="selectTestCase(testCase)"
           >
             <div class="test-case-info">
@@ -774,7 +774,7 @@ const deleteTestCase = async (testCase) => {
     loadTestCases(selectedProjectId.value)
     
     // 如果删除的是当前选中的测试用例，清空编辑器
-    if (selectedTestCase.value?.id === testCase.id) {
+    if (selectedTestCase.value && selectedTestCase.value.id === testCase.id) {
       selectedTestCase.value = null
       if (editor) {
         editor.setValue('')
