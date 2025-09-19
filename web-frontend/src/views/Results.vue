@@ -158,9 +158,9 @@
               <div class="result-project">{{ getProjectName(result.projectId) }}</div>
             </div>
             <div class="result-status">
-              <el-tag :type="getStatusType(result.result)" size="large">
-                {{ getResultText(result.result) }}
-              </el-tag>
+              <el-tag :type="getStatusType(result.status)" size="large">
+              {{ getResultText(result.status) }}
+            </el-tag>
             </div>
           </div>
           
@@ -213,8 +213,8 @@
             <p>{{ getProjectName(selectedResult.projectId) }}</p>
           </div>
           <div class="details-status">
-            <el-tag :type="getStatusType(selectedResult.result)" size="large">
-              {{ getResultText(selectedResult.result) }}
+            <el-tag :type="getStatusType(selectedResult.status)" size="large">
+              {{ getResultText(selectedResult.status) }}
             </el-tag>
           </div>
         </div>
@@ -321,8 +321,8 @@ const selectedResult = ref(null)
 // 计算属性
 const stats = computed(() => {
   const total = executionRecords.value.length
-  const passed = executionRecords.value.filter(r => r.result === 'PASSED').length
-  const failed = executionRecords.value.filter(r => r.result === 'FAILED').length
+  const passed = executionRecords.value.filter(r => r.status === 'PASSED').length
+  const failed = executionRecords.value.filter(r => r.status === 'FAILED').length
   const passRate = total > 0 ? Math.round((passed / total) * 100) : 0
   
   return {
@@ -343,7 +343,7 @@ const filteredResults = computed(() => {
   
   // 结果筛选
   if (filterForm.result) {
-    filtered = filtered.filter(r => r.result === filterForm.result)
+    filtered = filtered.filter(r => r.status === filterForm.result)
   }
   
   // 日期范围筛选
@@ -371,7 +371,7 @@ const filteredResults = computed(() => {
   filtered.sort((a, b) => {
     switch (sortBy.value) {
       case 'result':
-        return a.result.localeCompare(b.result)
+        return a.status.localeCompare(b.status)
       case 'project':
         const projectA = getProjectName(a.projectId)
         const projectB = getProjectName(b.projectId)
