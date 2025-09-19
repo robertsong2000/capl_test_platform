@@ -60,7 +60,7 @@
                 <el-tag :type="getPriorityType(testCase.priority)" size="small">
                   {{ getPriorityText(testCase.priority) }}
                 </el-tag>
-                <el-tag :type="getStatusType(testCase.status)" size="small" style="margin-left: 8px;">
+                <el-tag :type="getStatusType(testCase.status)" size="small" :style="{ marginLeft: '8px' }">
                   {{ getStatusText(testCase.status) }}
                 </el-tag>
               </div>
