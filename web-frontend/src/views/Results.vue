@@ -409,7 +409,7 @@ const loadData = () => {
     })
     
     // 获取执行记录
-    executionRecords.value = localDataManager.getExecutionRecords()
+    executionRecords.value = localDataManager.getTestExecutions()
   } catch (error) {
     ElMessage.error('加载数据失败: ' + error.message)
   } finally {

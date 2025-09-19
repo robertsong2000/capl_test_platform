@@ -519,7 +519,7 @@ const loadData = () => {
   try {
     projects.value = localDataManager.getProjects()
     testCases.value = localDataManager.getAllTestCases()
-    executionHistory.value = localDataManager.getExecutionRecords()
+    executionHistory.value = localDataManager.getTestExecutions()
     
     // 为测试用例添加项目名称
     testCases.value.forEach(tc => {

@@ -400,7 +400,7 @@ const testCaseRules = {
 
 // 计算属性
 const stats = computed(() => {
-  const executions = localDataManager.getExecutionRecords()
+  const executions = localDataManager.getTestExecutions()
   return {
     projects: projects.value.length,
     testCases: testCases.value.length,
