@@ -372,21 +372,13 @@ const importData = async () => {
   
   try {
     const file = importFileList.value[0].raw
-    let importedData
+    const result = await fileManager.importData()
     
-    switch (importForm.type) {
-      case 'json':
-        importedData = await fileManager.importFromJSON(file)
-        break
-      case 'excel':
-        importedData = await fileManager.importFromExcel(file)
-        break
-      case 'csv':
-        importedData = await fileManager.importFromCSV(file)
-        break
-      default:
-        throw new Error('不支持的导入格式')
+    if (!result.success) {
+      throw new Error(result.error)
     }
+    
+    const importedData = result.data
     
     if (importForm.validate) {
       // 验证数据格式
@@ -467,26 +459,11 @@ const exportData = async () => {
       }
     }
     
-    let exportedFile
-    switch (exportForm.format) {
-      case 'json':
-        exportedFile = await fileManager.exportToJSON(dataToExport, exportForm.filename)
-        break
-      case 'excel':
-        exportedFile = await fileManager.exportToExcel(dataToExport, exportForm.filename)
-        break
-      case 'csv':
-        exportedFile = await fileManager.exportToCSV(dataToExport, exportForm.filename)
-        break
-      default:
-        throw new Error('不支持的导出格式')
-    }
+    const result = await fileManager.exportData(exportForm.format, exportForm.filename)
     
-    // 下载文件
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(exportedFile)
-    link.download = exportForm.filename + '.' + exportForm.format
-    link.click()
+    if (!result.success) {
+      throw new Error(result.error)
+    }
     
     ElMessage.success('数据导出成功')
     exportDialogVisible.value = false
