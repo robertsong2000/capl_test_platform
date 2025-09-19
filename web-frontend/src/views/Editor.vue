@@ -323,163 +323,19 @@ on key a {
   msg1.byte(0) = 0x11;
   output(msg1);
 }`
-  },
-  {
-    id: 'can-message',
-    name: 'CAN消息测试',
-    type: 'advanced',
-    description: 'CAN消息发送和接收测试',
-    preview: `variables {
-  message CAN1 txMsg;
-  message CAN1 rxMsg;
-  int messageCount = 0;
-}
-
-on start {
-  // 初始化消息
-  txMsg.id = 0x123;
-  txMsg.dlc = 8;
-}
-
-on message 0x123 {
-  // 接收特定消息
-}`,
-    code: `variables {
-  message CAN1 txMsg;
-  message CAN1 rxMsg;
-  int messageCount = 0;
-  int testPassed = 0;
-}
-
-on start {
-  output('CAN消息测试开始');
-  
-  // 初始化发送消息
-  txMsg.id = 0x123;
-  txMsg.dlc = 8;
-  txMsg.byte(0) = 0xAA;
-  txMsg.byte(1) = 0xBB;
-  txMsg.byte(2) = 0xCC;
-  txMsg.byte(3) = 0xDD;
-  
-  // 发送测试消息
-  output(txMsg);
-  setTimer(this, 2000);
-}
-
-on message 0x123 {
-  output('收到消息 ID: 0x123');
-  messageCount++;
-  
-  // 验证消息内容
-  if (this.byte(0) == 0xAA && this.byte(1) == 0xBB) {
-    output('消息内容验证通过');
-    testPassed = 1;
-  } else {
-    output('消息内容验证失败');
-  }
-}
-
-on timer this {
-  output('测试完成 - 收到消息数: %d', messageCount);
-  if (testPassed) {
-    output('测试通过!');
-  } else {
-    output('测试失败!');
-  }
-}`
-  },
-  {
-    id: 'signal-test',
-    name: '信号测试',
-    type: 'advanced',
-    description: '信号值测试和验证',
-    preview: `variables {
-  msTimer cycleTimer;
-  int currentValue = 0;
-}
-
-on start {
-  setTimer(cycleTimer, 100);
-}
-
-on timer cycleTimer {
-  // 周期性测试
-}`,
-    code: `variables {
-  msTimer cycleTimer;
-  int currentValue = 0;
-  int testStep = 0;
-  float signalValue = 0.0;
-}
-
-on start {
-  output('信号测试开始');
-  setTimer(cycleTimer, 100);
-  
-  // 初始化信号
-  @sysvar::Test::EngineSpeed = 1000.0;
-  @sysvar::Test::VehicleSpeed = 50.0;
-}
-
-on timer cycleTimer {
-  testStep++;
-  
-  switch (testStep) {
-    case 1:
-      // 测试发动机转速
-      @sysvar::Test::EngineSpeed = 2000.0;
-      output('设置发动机转速: 2000 RPM');
-      break;
-      
-    case 2:
-      // 验证信号值
-      signalValue = @sysvar::Test::EngineSpeed;
-      if (signalValue >= 1950.0 && signalValue <= 2050.0) {
-        output('发动机转速测试通过: %.1f RPM', signalValue);
-      } else {
-        output('发动机转速测试失败: %.1f RPM', signalValue);
-      }
-      break;
-      
-    case 3:
-      // 测试车速
-      @sysvar::Test::VehicleSpeed = 80.0;
-      output('设置车速: 80 km/h');
-      break;
-      
-    case 4:
-      signalValue = @sysvar::Test::VehicleSpeed;
-      if (signalValue >= 75.0 && signalValue <= 85.0) {
-        output('车速测试通过: %.1f km/h', signalValue);
-      } else {
-        output('车速测试失败: %.1f km/h', signalValue);
-      }
-      
-      // 测试完成
-      output('信号测试完成');
-      cancelTimer(cycleTimer);
-      break;
-  }
-  
-  if (testStep < 4) {
-    setTimer(cycleTimer, 1000);
-  }
-}`
-  }
-])
-  {
-    id: 'basic',
-    name: '基础测试模板',
-    type: 'basic',
-    description: '基本的CAPL测试框架',
-    preview: `variables {\n  // 变量定义\n}\n\non start {\n  // 测试开始\n  output("测试开始");\n}\n\non message CAN1.* {\n  // 消息处理\n}\n\non timer testTimer {\n  // 定时器处理\n}\n\non key a {\n  // 按键处理\n}`,
-    code: "variables {\n  int testCounter = 0;\n  message CAN1 msg1;\n  timer testTimer;\n}\n\non start {\n  output('测试开始');\n  testCounter = 0;\n  setTimer(testTimer, 1000);\n}\n\non message CAN1.* {\n  output('收到消息: %d', this.id);\n  testCounter++;\n}\n\non timer testTimer {\n  output('定时器触发，计数: %d', testCounter);\n  if (testCounter < 10) {\n    setTimer(testTimer, 1000);\n  }\n}\n\non key a {\n  output('按键 A 被按下');\n  msg1.id = 0x123;\n  msg1.dlc = 8;\n  msg1.byte(0) = 0x11;\n  output(msg1);\n}\n  }
   }
 ])
 
 // 生命周期
 onMounted(() => {
+  // 处理 ResizeObserver 警告
+  const resizeObserverErrorHandler = (e) => {
+    if (e.message === 'ResizeObserver loop completed with undelivered notifications.') {
+      e.stopImmediatePropagation()
+    }
+  }
+  window.addEventListener('error', resizeObserverErrorHandler)
+  
   loadData()
   initMonacoEditor()
 })
