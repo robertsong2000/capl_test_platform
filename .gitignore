@@ -1,5 +1,6 @@
 # Dependencies
 capl-platform/node_modules/
+web-frontend/node_modules/
 capl-platform/package-lock.json
 
 # Database

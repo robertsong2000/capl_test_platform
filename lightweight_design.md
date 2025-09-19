@@ -1,41 +1,42 @@
-# CANoe测试用例管理系统 - 轻量级设计方案
+# CANoe测试用例管理系统 - Web前端设计方案
 
 ## 1. 简化架构设计
 
 ### 1.1 整体架构
-采用桌面应用 + 本地数据库的轻量级架构，无需复杂的服务器部署。
+采用纯Web前端架构，通过浏览器访问，无需安装桌面应用。
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                  桌面应用程序 (Electron)                   │
+│                      Web浏览器                              │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┬─────────────┬─────────────┬─────────────┐  │
 │  │  测试用例   │  CAPL编辑器  │  测试执行   │  结果展示   │  │
 │  │  管理界面   │  (Monaco)   │  控制台     │  界面       │  │
 │  └─────────────┴─────────────┴─────────────┴─────────────┘  │
 ├─────────────────────────────────────────────────────────────┤
-│                    本地服务层                                │
+│                  前端数据处理层                             │
 │  ┌─────────────┬─────────────┬─────────────┬─────────────┐  │
-│  │  数据管理   │  CANoe集成  │  文件操作   │  配置管理   │  │
-│  │  (SQLite)   │  (COM接口)  │  (Excel)    │  (JSON)     │  │
+│  │  本地存储   │  文件操作   │  数据序列化 │  配置管理   │  │
+│  │  (浏览器)   │  (HTML5)    │  (JSON)     │  (JSON)     │  │
 │  └─────────────┴─────────────┴─────────────┴─────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 1.2 技术栈选择（简化版）
+### 1.2 技术栈选择（Web前端版）
 
 #### 前端技术栈
-- **框架**: Electron + Vue.js 3
+- **框架**: Vue.js 3
 - **UI组件**: Element Plus
 - **代码编辑器**: Monaco Editor
-- **数据库**: SQLite (本地文件数据库)
-- **文件存储**: 本地文件系统
+- **数据存储**: 浏览器LocalStorage/IndexedDB
+- **文件操作**: HTML5 File API
 - **配置**: JSON文件
 
-#### 后端集成
-- **CANoe集成**: Windows COM接口
-- **Excel操作**: 使用现有的Excel处理库
-- **报告生成**: HTML模板 + PDF导出
+#### 数据处理
+- **本地存储**: 浏览器本地存储API
+- **文件导入导出**: HTML5文件操作API
+- **数据序列化**: JSON格式存储
+- **报告生成**: HTML模板 + 浏览器打印功能
 
 ## 2. 功能简化设计
 
@@ -57,11 +58,11 @@
 - ❌ 在线编译检查（后续版本）
 
 #### 2.1.3 测试执行
-- ✅ 单个测试用例执行
-- ✅ 调用CANoe执行
+- ✅ 测试用例执行流程管理
+- ✅ 执行状态跟踪
 - ✅ 基本的结果收集
+- ❌ CANoe集成（后续版本，需要后端支持）
 - ❌ 批量执行（后续版本）
-- ❌ 并发执行（后续版本）
 
 #### 2.1.4 结果管理
 - ✅ 执行结果查看
@@ -91,196 +92,293 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## 3. 数据库设计（简化版）
+## 3. 数据存储设计（Web前端版）
 
-### 3.1 SQLite数据库结构
+### 3.1 浏览器本地存储结构
 
-```sql
--- 项目表
-CREATE TABLE projects (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+#### 3.1.1 LocalStorage存储结构
+```javascript
+// 项目数据
+const projects = [
+  {
+    id: 'proj_001',
+    name: '项目A',
+    description: '项目描述',
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z'
+  }
+];
 
--- 测试用例表
-CREATE TABLE test_cases (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT,
-    priority TEXT DEFAULT 'MEDIUM',
-    status TEXT DEFAULT 'ACTIVE',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id)
-);
+// 测试用例数据
+const testCases = [
+  {
+    id: 'case_001',
+    projectId: 'proj_001',
+    name: '测试用例1',
+    description: '用例描述',
+    priority: 'MEDIUM',
+    status: 'ACTIVE',
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z'
+  }
+];
 
--- 测试步骤表
-CREATE TABLE test_steps (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    test_case_id INTEGER NOT NULL,
-    step_number INTEGER NOT NULL,
-    action_description TEXT NOT NULL,
-    expected_result TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (test_case_id) REFERENCES test_cases(id) ON DELETE CASCADE
-);
+// 测试步骤数据
+const testSteps = [
+  {
+    id: 'step_001',
+    testCaseId: 'case_001',
+    stepNumber: 1,
+    actionDescription: '操作步骤描述',
+    expectedResult: '预期结果',
+    createdAt: '2024-01-01T00:00:00.000Z'
+  }
+];
 
--- CAPL脚本表
-CREATE TABLE capl_scripts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    description TEXT,
-    code_content TEXT NOT NULL,
-    file_path TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+// CAPL脚本数据
+const caplScripts = [
+  {
+    id: 'script_001',
+    name: 'CAPL脚本1',
+    description: '脚本描述',
+    codeContent: 'CAPL代码内容',
+    filePath: 'local/path/to/script.can',
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z'
+  }
+];
 
--- 测试用例与CAPL脚本关联表
-CREATE TABLE test_case_scripts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    test_case_id INTEGER NOT NULL,
-    capl_script_id INTEGER NOT NULL,
-    execution_order INTEGER DEFAULT 1,
-    FOREIGN KEY (test_case_id) REFERENCES test_cases(id) ON DELETE CASCADE,
-    FOREIGN KEY (capl_script_id) REFERENCES capl_scripts(id) ON DELETE CASCADE
-);
+// 测试执行记录
+const testExecutions = [
+  {
+    id: 'exec_001',
+    testCaseId: 'case_001',
+    executionStatus: 'COMPLETED',
+    startTime: '2024-01-01T10:00:00.000Z',
+    endTime: '2024-01-01T10:05:00.000Z',
+    resultSummary: '执行成功',
+    errorMessage: '',
+    createdAt: '2024-01-01T10:00:00.000Z'
+  }
+];
 
--- 测试执行记录表
-CREATE TABLE test_executions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    test_case_id INTEGER NOT NULL,
-    execution_status TEXT DEFAULT 'PENDING',
-    start_time TIMESTAMP,
-    end_time TIMESTAMP,
-    result_summary TEXT,
-    error_message TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (test_case_id) REFERENCES test_cases(id)
-);
-
--- 系统配置表
-CREATE TABLE system_configs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    config_key TEXT UNIQUE NOT NULL,
-    config_value TEXT,
-    description TEXT
-);
+// 系统配置
+const systemConfigs = {
+  canoePath: 'C:/Program Files/CANoe/canoe.exe',
+  defaultProjectPath: 'C:/Projects',
+  exportFormat: 'excel'
+};
 ```
 
 ## 4. 核心模块设计
 
-### 4.1 数据访问层
+### 4.1 本地数据管理器
 ```javascript
-// 使用SQLite的轻量级封装
-class DatabaseManager {
+// 使用浏览器LocalStorage的数据管理器
+class LocalDataManager {
     constructor() {
-        this.db = new sqlite3.Database('capl_platform.db');
+        this.storageKey = 'capl_test_platform';
+        this.initializeData();
+    }
+    
+    // 初始化数据结构
+    initializeData() {
+        if (!localStorage.getItem(this.storageKey)) {
+            const initialData = {
+                projects: [],
+                testCases: [],
+                testSteps: [],
+                caplScripts: [],
+                testExecutions: [],
+                configs: {
+                    exportFormat: 'excel',
+                    autoSave: true
+                }
+            };
+            localStorage.setItem(this.storageKey, JSON.stringify(initialData));
+        }
+    }
+    
+    // 获取所有数据
+    getAllData() {
+        const data = localStorage.getItem(this.storageKey);
+        return data ? JSON.parse(data) : null;
+    }
+    
+    // 保存数据
+    saveData(data) {
+        localStorage.setItem(this.storageKey, JSON.stringify(data));
     }
     
     // 测试用例相关操作
-    async getTestCases(projectId) {
-        return new Promise((resolve, reject) => {
-            this.db.all(
-                'SELECT * FROM test_cases WHERE project_id = ? ORDER BY created_at DESC',
-                [projectId],
-                (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
-                }
-            );
-        });
+    getTestCases(projectId) {
+        const data = this.getAllData();
+        return data.testCases.filter(tc => tc.projectId === projectId);
     }
     
-    async createTestCase(testCase) {
-        const { project_id, name, description, priority } = testCase;
-        return new Promise((resolve, reject) => {
-            this.db.run(
-                'INSERT INTO test_cases (project_id, name, description, priority) VALUES (?, ?, ?, ?)',
-                [project_id, name, description, priority],
-                function(err) {
-                    if (err) reject(err);
-                    else resolve(this.lastID);
-                }
-            );
-        });
+    createTestCase(testCase) {
+        const data = this.getAllData();
+        const newTestCase = {
+            ...testCase,
+            id: `case_${Date.now()}`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        data.testCases.push(newTestCase);
+        this.saveData(data);
+        return newTestCase;
     }
     
     // CAPL脚本相关操作
-    async saveCAPLScript(script) {
-        const { name, description, code_content, file_path } = script;
+    saveCAPLScript(script) {
+        const data = this.getAllData();
+        const newScript = {
+            ...script,
+            id: `script_${Date.now()}`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        data.caplScripts.push(newScript);
+        this.saveData(data);
+        return newScript;
+    }
+    
+    // 文件导出功能
+    exportToFile(data, filename) {
+        const jsonStr = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+    
+    // 文件导入功能
+    importFromFile(file) {
         return new Promise((resolve, reject) => {
-            this.db.run(
-                'INSERT INTO capl_scripts (name, description, code_content, file_path) VALUES (?, ?, ?, ?)',
-                [name, description, code_content, file_path],
-                function(err) {
-                    if (err) reject(err);
-                    else resolve(this.lastID);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    this.saveData(data);
+                    resolve(data);
+                } catch (error) {
+                    reject(error);
                 }
-            );
+            };
+            reader.onerror = reject;
+            reader.readAsText(file);
         });
     }
 }
 ```
 
-### 4.2 CANoe集成模块
+### 4.2 文件操作模块（Web版）
 ```javascript
-// CANoe COM接口封装
-class CANoeIntegration {
+// HTML5文件API封装
+class FileManager {
     constructor() {
-        this.canoe = null;
-        this.isConnected = false;
+        this.supportedFormats = {
+            import: ['.json', '.xlsx', '.xls'],
+            export: ['.json', '.xlsx', '.html']
+        };
     }
     
-    async connect() {
-        try {
-            // 使用Node-API调用Windows COM接口
-            this.canoe = await this.initializeCANoeCOM();
-            this.isConnected = true;
-            return true;
-        } catch (error) {
-            console.error('CANoe连接失败:', error);
-            return false;
-        }
+    // 文件导入
+    async importFile(accept = '.json') {
+        return new Promise((resolve, reject) => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = accept;
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) {
+                    reject(new Error('未选择文件'));
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        resolve(data);
+                    } catch (error) {
+                        reject(new Error('文件格式错误'));
+                    }
+                };
+                reader.onerror = () => reject(new Error('文件读取失败'));
+                reader.readAsText(file);
+            };
+            input.click();
+        });
     }
     
-    async executeCAPLScript(scriptPath, testCaseName) {
-        if (!this.isConnected) {
-            throw new Error('CANoe未连接');
+    // 文件导出
+    exportFile(data, filename, format = 'json') {
+        let content, mimeType;
+        
+        switch (format) {
+            case 'json':
+                content = JSON.stringify(data, null, 2);
+                mimeType = 'application/json';
+                break;
+            case 'html':
+                content = this.generateHTMLReport(data);
+                mimeType = 'text/html';
+                break;
+            default:
+                throw new Error('不支持的导出格式');
         }
         
-        try {
-            // 加载CAPL脚本
-            await this.canoe.loadCAPL(scriptPath);
-            
-            // 启动测试
-            const result = await this.canoe.startTest(testCaseName);
-            
-            // 收集结果
-            return {
-                status: result.status,
-                log: result.log,
-                duration: result.duration
-            };
-        } catch (error) {
-            return {
-                status: 'ERROR',
-                error: error.message,
-                log: error.log || ''
-            };
-        }
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
     }
     
-    async disconnect() {
-        if (this.canoe) {
-            await this.canoe.quit();
-            this.canoe = null;
-            this.isConnected = false;
-        }
+    // 生成HTML报告
+    generateHTMLReport(data) {
+        return `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>测试报告</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    table { border-collapse: collapse; width: 100%; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #f2f2f2; }
+                    .pass { color: green; }
+                    .fail { color: red; }
+                </style>
+            </head>
+            <body>
+                <h1>测试执行报告</h1>
+                <p>生成时间: ${new Date().toLocaleString()}</p>
+                <table>
+                    <tr>
+                        <th>测试用例</th>
+                        <th>状态</th>
+                        <th>执行时间</th>
+                        <th>结果</th>
+                    </tr>
+                    ${data.map(item => `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${item.status}</td>
+                            <td>${item.startTime}</td>
+                            <td class="${item.status.toLowerCase()}">${item.resultSummary}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            </body>
+            </html>
+        `;
     }
 }
 ```
@@ -431,51 +529,53 @@ class ExcelManager {
 </template>
 ```
 
-## 6. 开发计划（简化版）
+## 6. 开发计划（Web前端版）
 
-### 6.1 第一阶段（2周）- 基础框架
-- [ ] Electron + Vue.js项目搭建
-- [ ] SQLite数据库集成
+### 6.1 第一阶段（1周）- 基础框架
+- [ ] Vue.js 3项目搭建
+- [ ] Element Plus UI集成
 - [ ] 基础界面框架
-- [ ] 项目树组件
+- [ ] 本地存储管理器
 
-### 6.2 第二阶段（2周）- 测试用例管理
+### 6.2 第二阶段（1周）- 测试用例管理
 - [ ] 测试用例CRUD操作
 - [ ] 测试步骤管理
 - [ ] 简单的搜索和筛选
-- [ ] Excel导入导出
+- [ ] 本地数据持久化
 
-### 6.3 第三阶段（2周）- CAPL编辑器
+### 6.3 第三阶段（1周）- CAPL编辑器
 - [ ] Monaco Editor集成
 - [ ] CAPL语法高亮
 - [ ] 基本的代码编辑功能
 - [ ] 脚本与用例关联
 
-### 6.4 第四阶段（2周）- CANoe集成
-- [ ] Windows COM接口调用
-- [ ] 基本的测试执行功能
-- [ ] 结果收集和显示
-- [ ] 简单的报告生成
+### 6.4 第四阶段（1周）- 文件操作
+- [ ] HTML5文件API集成
+- [ ] JSON导入导出功能
+- [ ] HTML报告生成
+- [ ] 浏览器打印功能
 
-### 6.5 第五阶段（1周）- 优化和打包
+### 6.5 第五阶段（1周）- 优化和部署
 - [ ] 界面优化
 - [ ] 性能优化
-- [ ] 应用打包
+- [ ] 静态网站部署
 - [ ] 用户文档
 
-## 7. 技术选型理由
+## 7. 技术选型理由（Web前端版）
 
-### 7.1 Electron优势
-- **跨平台**: 支持Windows、macOS、Linux
-- **Web技术**: 使用HTML/CSS/JavaScript开发
-- **本地访问**: 可直接访问文件系统和系统API
-- **打包简单**: 可打包成独立的桌面应用
+### 7.1 Web前端优势
+- **无需安装**: 通过浏览器直接访问，无需安装任何软件
+- **跨平台**: 支持所有主流浏览器和操作系统
+- **即开即用**: 打开浏览器即可使用，无需配置环境
+- **易于部署**: 静态文件部署，支持GitHub Pages等平台
+- **自动更新**: 刷新页面即可获取最新版本
 
-### 7.2 SQLite优势
-- **零配置**: 无需安装和配置数据库服务器
-- **轻量级**: 单文件数据库，适合桌面应用
-- **可靠性**: 经过验证的嵌入式数据库
-- **性能**: 对于小规模数据性能优秀
+### 7.2 浏览器本地存储优势
+- **零配置**: 无需安装数据库，浏览器原生支持
+- **轻量级**: 适合存储小规模结构化数据
+- **即时访问**: 数据读取无延迟，提升用户体验
+- **数据隔离**: 每个浏览器实例独立存储数据
+- **自动备份**: 浏览器自动管理数据持久化
 
 ### 7.3 Monaco Editor优势
 - **VS Code内核**: 与VS Code相同的编辑器
@@ -483,25 +583,27 @@ class ExcelManager {
 - **可扩展**: 支持自定义语法和主题
 - **性能优秀**: 大文件编辑性能良好
 
-## 8. 部署和分发
+## 8. 部署和访问
 
-### 8.1 应用打包
+### 8.1 静态网站部署
 ```bash
-# 使用electron-builder打包
+# 构建静态文件
 npm run build
-npm run dist
 
-# 生成安装包
-# Windows: .exe安装包
-# macOS: .dmg安装包  
-# Linux: .AppImage或.deb包
+# 部署到GitHub Pages
+git add dist
+git commit -m "Deploy to GitHub Pages"
+git subtree push --prefix dist origin gh-pages
+
+# 或者部署到其他静态托管服务
+# Netlify, Vercel, 阿里云OSS等
 ```
 
-### 8.2 分发方式
-- **直接下载**: 提供安装包下载
-- **自动更新**: 集成自动更新功能
-- **绿色版**: 提供免安装版本
-- **便携版**: USB便携版本
+### 8.2 访问方式
+- **直接访问**: 通过浏览器输入网址访问
+- **本地访问**: 支持本地文件直接打开（file://协议）
+- **移动设备**: 支持手机和平板浏览器访问
+- **离线使用**: 支持PWA离线缓存（可选）
 
 ## 9. 后续扩展计划
 
@@ -512,9 +614,9 @@ npm run dist
 - **CI/CD集成**: 持续集成支持
 
 ### 9.2 技术升级
-- **服务端版本**: 迁移到B/S架构
+- **服务端版本**: 添加后端API支持
 - **云同步**: 云端数据同步
-- **移动端**: 移动端查看应用
+- **CANoe集成**: 添加后端服务支持CANoe集成
 - **AI辅助**: 智能测试建议
 
-这个轻量级设计保留了核心功能，去除了复杂的分布式架构，更适合快速开发和部署。
+这个Web前端设计完全移除了Electron依赖，采用纯Web技术栈，用户只需通过浏览器即可访问所有功能。数据存储在浏览器本地，支持数据导入导出，适合快速开发和部署，同时保持良好的用户体验。
