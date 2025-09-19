@@ -1,0 +1,53 @@
+{
+  "name": "capl-platform",
+  "version": "1.0.0",
+  "description": "CANoe测试用例管理平台 - 轻量级桌面应用",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "keywords": ["CANoe", "CAPL", "测试", "汽车电子"],
+  "author": "CAPL Platform Team",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "vue": "^2.7.16",
+    "element-ui": "^2.15.14",
+    "monaco-editor": "^0.34.0",
+    "exceljs": "^4.4.0",
+    "@electron/remote": "^2.0.12"
+  },
+  "build": {
+    "appId": "com.capl.platform",
+    "productName": "CAPL测试平台",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    }
+  }
+}
