@@ -518,7 +518,7 @@ const loadData = () => {
   loading.value = true
   try {
     projects.value = localDataManager.getProjects()
-    testCases.value = localDataManager.getAllTestCases()
+    testCases.value = localDataManager.getTestCases()
     executionHistory.value = localDataManager.getTestExecutions()
     
     // 为测试用例添加项目名称

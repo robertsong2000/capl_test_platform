@@ -433,7 +433,7 @@ const exportData = async () => {
         dataToExport = { projects: localDataManager.getProjects() }
         break
       case 'testCases':
-        dataToExport = { testCases: localDataManager.getAllTestCases() }
+        dataToExport = { testCases: localDataManager.getTestCases() }
         break
       case 'results':
         dataToExport = { executionRecords: localDataManager.getExecutionRecords() }
