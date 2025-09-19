@@ -524,7 +524,7 @@ const saveProject = async () => {
         id: `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         createdAt: new Date().toISOString()
       }
-      localDataManager.addProject(newProject)
+      localDataManager.createProject(newProject)
       ElMessage.success('项目创建成功')
     }
     
@@ -604,7 +604,7 @@ const saveTestCase = async () => {
         id: `testcase_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         createdAt: new Date().toISOString()
       }
-      localDataManager.addTestCase(newTestCase)
+      localDataManager.createTestCase(newTestCase)
       ElMessage.success('测试用例创建成功')
     }
     

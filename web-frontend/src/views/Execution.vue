@@ -737,7 +737,7 @@ const executeSingleTestCase = async (testCase) => {
             { name: '验证结果', status: 'PASSED', duration: 200 }
           ]
         }
-        localDataManager.addExecutionRecord(result)
+        localDataManager.createTestExecution(result)
         
         resolve(result)
       } else {
@@ -762,7 +762,7 @@ const executeSingleTestCase = async (testCase) => {
             { name: '验证结果', status: 'FAILED', duration: 100 }
           ]
         }
-        localDataManager.addExecutionRecord(result)
+        localDataManager.createTestExecution(result)
         
         reject(new Error('模拟执行失败'))
       }

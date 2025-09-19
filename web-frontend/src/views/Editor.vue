@@ -611,7 +611,7 @@ const runTest = async () => {
           { name: '执行测试', status: 'PASSED', duration: 1000 }
         ]
       }
-      localDataManager.addExecutionRecord(result)
+      localDataManager.createTestExecution(result)
       
     } else {
       addOutputLog('error', '测试执行失败')
@@ -636,7 +636,7 @@ const runTest = async () => {
           { name: '执行测试', status: 'FAILED', duration: 1000 }
         ]
       }
-      localDataManager.addExecutionRecord(result)
+      localDataManager.createTestExecution(result)
     }
     
   } catch (error) {
@@ -715,7 +715,7 @@ const saveTestCase = async () => {
         script: '',
         createdAt: new Date().toISOString()
       }
-      localDataManager.addTestCase(newTestCase)
+      localDataManager.createTestCase(newTestCase)
       ElMessage.success('测试用例创建成功')
     }
     
